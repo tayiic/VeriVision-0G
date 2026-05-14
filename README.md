@@ -174,6 +174,20 @@ print(f"0G Explorer: {receipt.explorer_url}")
 
 - **tayiic** — AI Researcher & Full-Stack Developer
 
+## 🤖 AI Usage Disclosure
+
+This project used AI coding assistants (Claude, ChatGPT) for:
+- Boilerplate code generation (API call patterns, Gradio UI scaffolding)
+- Documentation drafting and formatting
+- Smart contract template structure
+
+**What we built ourselves** (core intellectual contribution):
+- Cross-model hallucination detection pipeline architecture
+- Skeptical verification prompt engineering
+- 0G Storage integration design for immutable audit logs
+- VeriVisionRegistry smart contract logic
+- Overall system design and product decisions
+
 ## 📄 License
 
 MIT License
