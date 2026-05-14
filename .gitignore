@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+deploy_info.json
+cached_responses/
+*.egg-info/
+dist/
+build/

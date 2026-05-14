@@ -1,0 +1,6 @@
+zhipuai
+openai
+web3
+gradio
+opencv-python
+numpy
