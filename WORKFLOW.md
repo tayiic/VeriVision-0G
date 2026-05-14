@@ -86,15 +86,89 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
 
 ## 手动操作清单（AI无法自动完成）
 
-| # | 操作 | 工具 | 预计时间 |
-|---|------|------|----------|
-| 1 | GitHub创建仓库 tayiic/VeriVision-0G | github.com | 2min |
-| 2 | 推送代码到仓库 | git push | 2min |
-| 3 | 获取0G测试网代币 | faucet.0g.ai | 3min |
-| 4 | 部署合约到0G Galileo测试网 | python deploy.py | 5min |
-| 5 | Loom录制3分钟Demo视频 | loom.com | 20min |
-| 6 | 发布X推文 | x.com | 3min |
-| 7 | HackQuest填写提交表 | hackquest.io | 10min |
+| # | 操作 | 工具 | 状态 | 预计时间 |
+|---|------|------|------|----------|
+| 1 | GitHub创建仓库 + 推送代码 | git push | ✅ 已完成 | 5min |
+| 2 | **0G合约部署** (详见下方) | MetaMask + deploy.py | ⬜ 待执行 | 12min |
+| 3 | Loom录制3分钟Demo视频 | loom.com | ⬜ 待执行 | 20min |
+| 4 | 发布X推文 | x.com | ⬜ 待执行 | 3min |
+| 5 | HackQuest填写提交表 | hackquest.io | ⬜ 待执行 | 10min |
+
+---
+
+## Step 2: 0G合约部署（详细流程）
+
+### 2a. 准备钱包 (3min)
+
+**推荐工具**: MetaMask 浏览器扩展
+
+> MetaMask选择: Chrome和Firefox都支持。**Chrome的DApp兼容性略好**（大部分DeFi/DApp优先适配Chrome），但Firefox隐私保护更强。实际使用差异不大，选你常用的浏览器即可。
+
+**操作步骤**:
+1. 安装MetaMask: https://metamask.io/
+2. 创建/导入钱包（⚠️ 用新账户，不要用主网钱包）
+3. 在MetaMask中**手动添加0G Galileo测试网络**:
+
+```
+网络名称:    0G Galileo Testnet
+RPC URL:     https://evmrpc-testnet.0g.ai
+Chain ID:    80087
+货币符号:     0G
+区块浏览器:   https://chainscan-galileo.0g.ai
+```
+
+4. 切换到该网络，复制钱包地址 `0x...`
+
+### 2b. 获取测试代币 (2min)
+
+1. 打开 https://faucet.0g.ai/
+2. 粘贴钱包地址 → 领取测试币（免费）
+3. 部署一次约需 0.001-0.01 0G gas费
+
+### 2c. 部署合约 (5min)
+
+**方法A — 命令行部署（推荐）**:
+```powershell
+cd "x:\workspace\Paper\competitions\0G-APAC-Hackathon\code"
+$env:0G_PRIVATE_KEY="你的私钥_不带0x前缀"
+python deploy.py
+```
+
+**预期输出**:
+```
+Deployer: 0xYourAddress...
+Balance: xxx.xxxx 0G
+TX Hash: 0xabcd1234...
+Contract Address: 0x1234567890abcdef...
+Explorer: https://chainscan-galileo.0g.ai/address/0x1234567890abcdef
+Deployment info saved to code/deploy_info.json
+```
+
+**方法B — Remix备用方案**（如果命令行有问题）:
+1. 打开 https://remix.ethereum.org/
+2. 新建文件 `VeriVisionRegistry.sol`，粘贴 contracts/ 目录下的内容
+3. Solidity Compiler → Compile
+4. Deploy & Run Transactions → Environment选 "Injected Provider - MetaMask"
+5. 点击 Deploy → MetaMask确认交易
+
+### 2d. 验证+记录 (2min)
+
+1. 打开 https://chainscan-galileo.0g.ai/ 搜索合约地址
+2. 确认状态为 Success
+3. **截图保存**（Demo视频用）
+4. 记录以下信息:
+
+| 字段 | 值 | HackQuest必填? |
+|------|-----|---------------|
+| Contract Address | `0x...` | ✅ 是 |
+| Explorer URL | `https://chainscan-galileo.0g.ai/address/0x...` | ✅ 是 |
+| Deploy TX Hash | `0x...` | 备查 |
+
+### 安全提醒 🔴
+
+- **只用测试网专用钱包**，不要用主网私钥
+- 建议新建一个MetaMask账户专门用于测试
+- 部署完成后可废弃该测试账户
 
 ## 合规检查
 
