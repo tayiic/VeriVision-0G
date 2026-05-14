@@ -60,6 +60,7 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
   - [ ] Loom录制3分钟Demo视频
   - [ ] 视频上传获取公开链接
 - 依赖: 无（代码已就绪）
+- Demo模式: `VERIVISION_DEMO=1 python gradio_app.py` (无需API密钥)
 
 ### Phase 7: 提交 ⬜
 - 提交物清单（7项必填）:
