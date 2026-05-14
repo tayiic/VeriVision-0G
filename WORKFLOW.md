@@ -112,7 +112,7 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
 ```
 网络名称:    0G Galileo Testnet
 RPC URL:     https://evmrpc-testnet.0g.ai
-Chain ID:    80087
+Chain ID:    10062
 货币符号:     0G
 区块浏览器:   https://chainscan-galileo.0g.ai
 ```
@@ -169,6 +169,14 @@ Deployment info saved to code/deploy_info.json
 - **只用测试网专用钱包**，不要用主网私钥
 - 建议新建一个MetaMask账户专门用于测试
 - 部署完成后可废弃该测试账户
+
+### 当前部署信息
+
+| 字段 | 值 |
+|------|-----|
+| 钱包地址 | `0xaA3b0911cE24121235A6c016338f7cec9B0C8045` |
+| Chain ID | **10062** |
+| 状态 | ✅ 测试币已领取，待部署 |
 
 ## 合规检查
 
