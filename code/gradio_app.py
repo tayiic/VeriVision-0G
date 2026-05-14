@@ -7,6 +7,8 @@ import os
 import sys
 import json
 import time
+import random
+import hashlib
 from pathlib import Path
 
 import gradio as gr
@@ -15,6 +17,31 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 from verivision import VeriVisionPipeline, HallucinationReport, StorageReceipt
 
+DEMO_MODE = os.environ.get("VERIVISION_DEMO", "0") == "1"
+
+_DEMO_SCENARIOS = [
+    {
+        "desc": "I can see a cat sitting on a windowsill, a red stop sign on the street, and a bicycle parked nearby.",
+        "objects": ["cat", "stop sign", "bicycle", "windowsill", "street"],
+        "verified": ["cat", "bicycle", "windowsill"],
+        "hallucinated": ["stop sign", "street"],
+        "confidence": {"cat": 0.92, "stop sign": 0.15, "bicycle": 0.88, "windowsill": 0.75, "street": 0.22},
+    },
+    {
+        "desc": "The image shows a crowded restaurant table with plates of food, wine glasses, and a laptop computer.",
+        "objects": ["plates of food", "wine glasses", "laptop computer", "restaurant table", "crowd"],
+        "verified": ["plates of food", "wine glasses", "restaurant table"],
+        "hallucinated": ["laptop computer", "crowd"],
+        "confidence": {"plates of food": 0.95, "wine glasses": 0.87, "laptop computer": 0.18, "restaurant table": 0.91, "crowd": 0.25},
+    },
+    {
+        "desc": "A mirror room with reflections of a person standing in the center, surrounded by ornate golden frames and a chandelier above.",
+        "objects": ["mirror", "person", "golden frames", "chandelier", "reflections"],
+        "verified": ["mirror", "person", "reflections"],
+        "hallucinated": ["golden frames", "chandelier"],
+        "confidence": {"mirror": 0.96, "person": 0.89, "golden frames": 0.20, "chandelier": 0.12, "reflections": 0.93},
+    },
+]
 
 pipeline = None
 _analysis_cache = {}
@@ -27,6 +54,31 @@ def _get_pipeline():
         verify = os.environ.get("VERIFY_MODEL", "openai")
         pipeline = VeriVisionPipeline(desc_model=desc, verify_model=verify)
     return pipeline
+
+
+def _demo_analyze(image, store_on_chain: bool = True):
+    scenario = random.choice(_DEMO_SCENARIOS)
+    img_np = np.array(image) if image is not None else np.zeros((100, 100, 3), dtype=np.uint8)
+    image_hash = hashlib.sha256(img_np.tobytes()).hexdigest()[:16] if image is not None else "demo_hash"
+
+    report = HallucinationReport(
+        image_hash=image_hash,
+        vlm_description=scenario["desc"],
+        vlm_objects=scenario["objects"],
+        verified_objects=scenario["verified"],
+        hallucinated_objects=scenario["hallucinated"],
+        confidence_scores=scenario["confidence"],
+        verifier_model="gpt-4o-mini (demo)",
+        describer_model="glm-4v-flash (demo)",
+    )
+    receipt = StorageReceipt(
+        root_hash=hashlib.sha256(report.to_json().encode()).hexdigest(),
+        tx_hash="0x" + hashlib.sha256(str(time.time()).encode()).hexdigest()[:64],
+        explorer_url=f"https://chainscan-galileo.0g.ai/tx/0x{'a' * 64}",
+        timestamp=time.time(),
+        size_bytes=len(report.to_0g_payload()),
+    )
+    return report, receipt
 
 
 def _format_confidence_bars(report: HallucinationReport) -> str:
@@ -48,25 +100,28 @@ def analyze_image(image, store_on_chain: bool = True):
     if image is None:
         return "Please upload an image.", "", "", "", ""
 
-    p = _get_pipeline()
-    img_np = np.array(image)
-
-    cache_key = str(hash(img_np.tobytes()))
-    if cache_key in _analysis_cache:
-        report, receipt = _analysis_cache[cache_key]
+    if DEMO_MODE:
+        report, receipt = _demo_analyze(image, store_on_chain)
     else:
-        if store_on_chain:
-            report, receipt = p.analyze_and_store(img_np)
+        p = _get_pipeline()
+        img_np = np.array(image)
+
+        cache_key = str(hash(img_np.tobytes()))
+        if cache_key in _analysis_cache:
+            report, receipt = _analysis_cache[cache_key]
         else:
-            report = p.quick_analyze(img_np)
-            receipt = StorageReceipt(
-                root_hash="off-chain",
-                tx_hash="N/A",
-                explorer_url="N/A",
-                timestamp=time.time(),
-                size_bytes=0,
-            )
-        _analysis_cache[cache_key] = (report, receipt)
+            if store_on_chain:
+                report, receipt = p.analyze_and_store(img_np)
+            else:
+                report = p.quick_analyze(img_np)
+                receipt = StorageReceipt(
+                    root_hash="off-chain",
+                    tx_hash="N/A",
+                    explorer_url="N/A",
+                    timestamp=time.time(),
+                    size_bytes=0,
+                )
+            _analysis_cache[cache_key] = (report, receipt)
 
     summary = (
         f"## Verification Summary\n"
@@ -99,12 +154,12 @@ def analyze_image(image, store_on_chain: bool = True):
 def create_ui():
     with gr.Blocks(
         title="VeriVision \u2014 Decentralized VLM Hallucination Verifier",
-        theme=gr.themes.Soft(),
     ) as demo:
         gr.Markdown(
             "# \U0001f441\ufe0f VeriVision \u2014 Decentralized VLM Hallucination Verifier\n"
             "Detect when AI vision models hallucinate, and store verification results immutably on **0G Storage**.\n\n"
             "**Track 1**: Agentic Infrastructure | **Track 4**: Web 4.0 Open Innovation"
+            + ("\n\n⚠️ **DEMO MODE** — Using simulated VLM responses for demonstration" if DEMO_MODE else "")
         )
 
         with gr.Row():
@@ -151,7 +206,7 @@ def create_ui():
 if __name__ == "__main__":
     demo = create_ui()
     demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
+        server_name="127.0.0.1",
+        server_port=7861,
         share=False,
     )
