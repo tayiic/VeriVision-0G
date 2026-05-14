@@ -209,7 +209,7 @@ class OGStorageClient:
     def __init__(self, rpc_url: str = "", private_key: str = ""):
         self.rpc_url = rpc_url or os.environ.get("0G_RPC_URL", "https://evmrpc-testnet.0g.ai")
         self.private_key = private_key or os.environ.get("0G_PRIVATE_KEY", "")
-        self.chain_id = 10062
+        self.chain_id = 16602
         self._web3 = None
 
     def _get_web3(self):

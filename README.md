@@ -7,6 +7,16 @@
 
 **VeriVision** detects when AI vision models (VLMs) hallucinate — and stores verification results immutably on **0G Storage**. Think of it as a decentralized lie detector for AI vision.
 
+## 📸 Screenshots
+
+| Landing Page | Analysis Result (Real Photo) |
+|:---:|:---:|
+| ![Landing](docs/screenshot_landing.png) | ![Result True](docs/screenshot_result_true1.png) |
+
+| Image Uploaded | Analysis Result (AI-Generated) |
+|:---:|:---:|
+| ![Uploaded](docs/screenshot_uploaded.png) | ![Result False](docs/screenshot_result_false1.png) |
+
 ## 🎯 The Problem
 
 Vision Language Models (VLMs) like GPT-4V, LLaVA, and GLM-4V frequently **hallucinate** — they describe objects that don't exist in the image. This is a critical trust issue for:
@@ -58,7 +68,7 @@ Vision Language Models (VLMs) like GPT-4V, LLaVA, and GLM-4V frequently **halluc
 
 ### Smart Contract: VeriVisionRegistry
 
-Deployed on **0G Galileo Testnet**:
+Deployed on **0G Galileo Testnet** (Chain ID: `16602`):
 
 - `storeVerification()` — Record a verification result on-chain
 - `getRecord()` — Retrieve verification by ID
@@ -102,7 +112,7 @@ python deploy.py
 python gradio_app.py
 ```
 
-Open http://localhost:7860 and upload an image to verify.
+Open http://localhost:7861 and upload an image to verify.
 
 ### Programmatic Usage
 
@@ -122,11 +132,10 @@ print(f"0G Explorer: {receipt.explorer_url}")
 
 ## 📊 Demo Results
 
-| Image | VLM Claimed | Verified | Hallucinated | Rate |
-|-------|-------------|----------|--------------|------|
-| Kitchen scene | 8 objects | 5 | 3 | 37.5% |
-| Street view | 6 objects | 4 | 2 | 33.3% |
-| Office desk | 7 objects | 6 | 1 | 14.3% |
+| Image | Type | VLM Claimed | Verified | Hallucinated | Rate |
+|-------|------|-------------|----------|--------------|------|
+| true1_real.jpg | Real photo | 5 objects | 3 | 2 | 40.0% |
+| false1_ai_generated.png | AI-generated | 5 objects | 3 | 2 | 40.0% |
 
 ## 🎬 Demo Video
 
@@ -149,17 +158,26 @@ print(f"0G Explorer: {receipt.explorer_url}")
 ```
 0G-APAC-Hackathon/
 ├── README.md              # This file
+├── WORKFLOW.md            # Project workflow & FSM tracking
 ├── code/
 │   ├── verivision.py      # Core hallucination detection + 0G Storage
-│   ├── gradio_app.py      # Web UI
+│   ├── gradio_app.py      # Web UI (with DEMO mode)
 │   ├── deploy.py          # Contract deployment script
+│   ├── screenshot_demo.py # Playwright screenshot automation
 │   ├── requirements.txt   # Python dependencies
-│   └── .env.example       # Environment template
+│   ├── .env.example       # Environment template
+│   └── example_images/    # Demo test images
+│       ├── true1_real.jpg          # Real photograph
+│       └── false1_ai_generated.png # AI-generated image
 ├── contracts/
 │   └── VeriVisionRegistry.sol  # 0G Chain smart contract
-├── docs/
-│   └── architecture.md    # Detailed architecture docs
-└── frontend/              # (Optional) React frontend
+└── docs/
+    ├── submission-checklist.md  # Hackathon submission checklist
+    ├── demo-video-script.md     # Video recording script
+    ├── screenshot_landing.png        # UI screenshot
+    ├── screenshot_uploaded.png       # UI screenshot
+    ├── screenshot_result_true1.png   # Analysis result (real photo)
+    └── screenshot_result_false1.png  # Analysis result (AI image)
 ```
 
 ## 🔮 Future Roadmap

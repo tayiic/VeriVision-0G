@@ -182,6 +182,20 @@ def create_ui():
 
         json_output = gr.Textbox(label="Full Report (JSON)", lines=8, visible=False)
 
+        EXAMPLE_DIR = Path(__file__).parent / "example_images"
+        examples = []
+        if EXAMPLE_DIR.exists():
+            for img in sorted(EXAMPLE_DIR.iterdir()):
+                if img.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
+                    label = "Real photo" if "true" in img.stem else "AI-generated" if "false" in img.stem else img.stem
+                    examples.append([str(img), True])
+        if examples:
+            gr.Examples(
+                examples=examples,
+                inputs=[image_input, store_checkbox],
+                label="Example Images (click to load)",
+            )
+
         gr.Markdown(
             "### How it works\n"
             "1. **VLM-A** describes the image (ZhipuAI GLM-4V)\n"
