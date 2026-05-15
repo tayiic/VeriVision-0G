@@ -1,6 +1,7 @@
 zhipuai
 openai
 web3
+0g-storage-sdk
 gradio
 opencv-python
 numpy

@@ -13,6 +13,7 @@ Track: 1 (Agentic Infrastructure) + 4 (Web 4.0 Open Innovation)
 """
 
 import os
+import re
 import json
 import time
 import base64
@@ -206,23 +207,25 @@ class VLMHallucinationDetector:
 
 
 class OGStorageClient:
+    INDEXER_RPC = "https://rpc-storage-testnet.0g.ai"
+    FLOW_CONTRACT = "0x8873cc79c5b3b5666535C825205C9a128B1D75F1"
+
     def __init__(self, rpc_url: str = "", private_key: str = ""):
         self.rpc_url = rpc_url or os.environ.get("0G_RPC_URL", "https://evmrpc-testnet.0g.ai")
         self.private_key = private_key or os.environ.get("0G_PRIVATE_KEY", "")
         self.chain_id = 16602
-        self._web3 = None
+        self._sdk_available = None
 
-    def _get_web3(self):
-        if self._web3 is None:
+    def _check_sdk(self) -> bool:
+        if self._sdk_available is None:
             try:
-                from web3 import Web3
-                self._web3 = Web3(Web3.HTTPProvider(self.rpc_url))
+                from zero_g import ZgFile, Indexer  # noqa: F401
+                self._sdk_available = True
             except ImportError:
-                raise ImportError("web3 not installed. Run: pip install web3")
-        return self._web3
+                self._sdk_available = False
+        return self._sdk_available
 
     def store_report(self, report: HallucinationReport) -> StorageReceipt:
-        w3 = self._get_web3()
         payload = report.to_0g_payload()
         payload_hash = hashlib.sha256(payload).hexdigest()
 
@@ -235,6 +238,46 @@ class OGStorageClient:
                 size_bytes=len(payload),
             )
 
+        if self._check_sdk():
+            return self._store_via_sdk(report, payload, payload_hash)
+        return self._store_via_web3(report, payload, payload_hash)
+
+    def _store_via_sdk(self, report: HallucinationReport, payload: bytes, payload_hash: str) -> StorageReceipt:
+        from zero_g import ZgFile, Indexer
+
+        tmp_path = Path(__file__).parent / f".tmp_report_{payload_hash[:8]}.json"
+        try:
+            tmp_path.write_bytes(payload)
+
+            indexer = Indexer(self.INDEXER_RPC)
+            zg = ZgFile(str(tmp_path))
+
+            root_hash = zg.merkle_root()
+            tx_hash = indexer.upload(
+                rpc_url=self.rpc_url,
+                private_key=self.private_key,
+                file_path=str(tmp_path),
+                flow_contract=self.FLOW_CONTRACT,
+            )
+
+            return StorageReceipt(
+                root_hash=root_hash,
+                tx_hash=tx_hash if isinstance(tx_hash, str) else tx_hash.hex(),
+                explorer_url=f"https://chainscan-galileo.0g.ai/tx/{tx_hash if isinstance(tx_hash, str) else tx_hash.hex()}",
+                timestamp=time.time(),
+                size_bytes=len(payload),
+            )
+        except Exception as e:
+            print(f"[0G SDK] upload failed, falling back to web3: {e}")
+            return self._store_via_web3(report, payload, payload_hash)
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()
+
+    def _store_via_web3(self, report: HallucinationReport, payload: bytes, payload_hash: str) -> StorageReceipt:
+        from web3 import Web3
+
+        w3 = Web3(Web3.HTTPProvider(self.rpc_url))
         account = w3.eth.account.from_key(self.private_key)
         nonce = w3.eth.get_transaction_count(account.address)
 
@@ -261,7 +304,9 @@ class OGStorageClient:
         )
 
     def verify_on_chain(self, tx_hash: str) -> dict:
-        w3 = self._get_web3()
+        from web3 import Web3
+
+        w3 = Web3(Web3.HTTPProvider(self.rpc_url))
         receipt = w3.eth.get_transaction_receipt(tx_hash)
         return {
             "block_number": receipt.blockNumber,

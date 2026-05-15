@@ -62,8 +62,8 @@ Vision Language Models (VLMs) like GPT-4V, LLaVA, and GLM-4V frequently **halluc
 
 | Component | Usage | Why 0G |
 |-----------|-------|--------|
-| **0G Storage** | Immutable audit log of verification results | Tamper-proof AI verification history |
-| **0G Chain** | VeriVisionRegistry smart contract | On-chain verification registry with hallucination rates |
+| **0G Storage** | Immutable audit log of verification results via official SDK | Tamper-proof AI verification history with Merkle root verification |
+| **0G Chain** | VeriVisionRegistry smart contract + Flow contract for storage | On-chain verification registry with hallucination rates |
 | **0G Compute** | (Planned) On-chain inference verification | Decentralized model verification |
 
 ### Smart Contract: VeriVisionRegistry
@@ -78,10 +78,13 @@ Deployed on **0G Galileo Testnet** (Chain ID: `16602`):
 ### 0G Storage Flow
 
 1. VLM hallucination report generated (JSON payload)
-2. Report hash computed (SHA-256)
-3. Report data sent to 0G Storage via transaction
-4. Storage receipt returned with TX hash + Explorer link
-5. Anyone can verify the audit trail on-chain
+2. Report written to temporary file, Merkle root computed via **0G Storage SDK**
+3. File uploaded to 0G Storage network via Indexer RPC (`rpc-storage-testnet.0g.ai`)
+4. On-chain transaction submitted to Flow contract (`0x8873...D75F1`) with storage fee
+5. Root hash + TX hash returned as immutable receipt
+6. Anyone can verify the audit trail on 0G Explorer or download via root hash
+
+> **SDK**: Uses official `0g-storage-sdk` (Python) with automatic fallback to raw web3.py transaction if SDK unavailable.
 
 ## 🚀 Quick Start
 
@@ -149,8 +152,8 @@ print(f"0G Explorer: {receipt.explorer_url}")
 | VLM Verifier | OpenAI GPT-4o-mini |
 | Frontend | Gradio |
 | Smart Contract | Solidity 0.8.20 |
-| Blockchain | 0G Galileo Testnet |
-| Storage | 0G Storage SDK |
+| Blockchain | 0G Galileo Testnet (Chain ID: 16602) |
+| Storage | 0G Storage SDK (0g-storage-sdk v0.3.0) |
 | Language | Python 3.10+ |
 
 ## 📁 Project Structure
