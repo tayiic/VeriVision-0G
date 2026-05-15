@@ -55,20 +55,30 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
 - 日期: 2026-05-13
 - 状态: 核心链路可运行，Gradio UI可启动
 
-### Phase 6: Demo ⬜ ← 当前
-- 目标:
+### Phase 6: Demo 🟡 ← 当前
+- 日期: 2026-05-14
+- 已完成:
+  - [x] Chain ID修正为16602（官方确认）
+  - [x] GitHub仓库推送 (v001-v008)
+  - [x] Demo模式添加（VERIVISION_DEMO=1）
+  - [x] Playwright截图4张（landing/uploaded/result_true1/result_false1）
+  - [x] 示例图片添加（true1_real.jpg=真实照片, false1_ai_generated.png=AI生成）
+  - [x] README更新（截图+AI声明+项目结构）
+  - [x] 知识库同步（KalyceBrain项目页更新）
+- 待完成:
   - [ ] Loom录制3分钟Demo视频
   - [ ] 视频上传获取公开链接
 - 依赖: 无（代码已就绪）
 - Demo模式: `VERIVISION_DEMO=1 python gradio_app.py` (无需API密钥)
+- 截图自动化: `python screenshot_demo.py` (Playwright)
 
 ### Phase 7: 提交 ⬜
 - 提交物清单（7项必填）:
   - [x] 项目名+一句话描述
-  - [ ] GitHub公开仓库 (tayiic/VeriVision-0G)
+  - [x] GitHub公开仓库 (https://github.com/tayiic/VeriVision-0G)
   - [ ] 0G链上合约地址 + Explorer链接
   - [ ] Demo视频(≤3min, YouTube/Loom)
-  - [x] README文档(英文)
+  - [x] README文档(英文+截图+AI声明)
   - [ ] X推文(#0GHackathon #BuildOn0G @0G_labs @0g_CN @0g_Eco @HackQuest_)
   - [x] AI使用声明(已在README中)
 - 提交地址: https://www.hackquest.io/en/hackathons/0G-APAC-Hackathon
@@ -93,6 +103,8 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
 | 3 | Loom录制3分钟Demo视频 | loom.com | ⬜ 待执行 | 20min |
 | 4 | 发布X推文 | x.com | ⬜ 待执行 | 3min |
 | 5 | HackQuest填写提交表 | hackquest.io | ⬜ 待执行 | 10min |
+
+> **⚠️ 截止日期: 2026-05-16 23:59 UTC+8，剩余约2天**
 
 ---
 
