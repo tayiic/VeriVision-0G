@@ -14,7 +14,7 @@
 | 截止 | 2026-05-16 23:59 UTC+8 |
 | 奖金 | $150K总池 / $45K冠军 |
 | 技术栈 | Python + Web3.py + Solidity + Gradio + 0G Storage/Chain |
-| 状态 | 🟡 开发完成，待提交 |
+| 状态 | 🟡 开发完成，待提交（截止5/16 23:59） |
 
 ## FSM 状态机
 
@@ -55,19 +55,23 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
 - 日期: 2026-05-13
 - 状态: 核心链路可运行，Gradio UI可启动
 
-### Phase 6: Demo 🟡 ← 当前
-- 日期: 2026-05-14
+### Phase 6: Demo ✅
+- 日期: 2026-05-14 ~ 05-16
 - 已完成:
   - [x] Chain ID修正为16602（官方确认）
-  - [x] GitHub仓库推送 (v001-v008)
+  - [x] GitHub仓库推送 (v001-v010)
   - [x] Demo模式添加（VERIVISION_DEMO=1）
   - [x] Playwright截图4张（landing/uploaded/result_true1/result_false1）
   - [x] 示例图片添加（true1_real.jpg=真实照片, false1_ai_generated.png=AI生成）
   - [x] README更新（截图+AI声明+项目结构）
   - [x] 知识库同步（KalyceBrain项目页更新）
-- 待完成:
+  - [x] 专业评审报告（基于获奖项目分析）
+  - [x] SUBMIT-NOW.md提交操作清单
+- 待手动完成:
   - [ ] Loom录制3分钟Demo视频
-  - [ ] 视频上传获取公开链接
+  - [ ] 0G合约部署（MetaMask+deploy.py）
+  - [ ] X推文发布
+  - [ ] HackQuest最终提交
 - 依赖: 无（代码已就绪）
 - Demo模式: `VERIVISION_DEMO=1 python gradio_app.py` (无需API密钥)
 - 截图自动化: `python screenshot_demo.py` (Playwright)
