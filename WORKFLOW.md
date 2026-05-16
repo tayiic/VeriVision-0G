@@ -14,16 +14,20 @@
 | 截止 | 2026-05-16 23:59 UTC+8 |
 | 奖金 | $150K总池 / $45K冠军 |
 | 技术栈 | Python + Web3.py + Solidity + Gradio + 0G Storage/Chain |
-| 状态 | 🟡 开发完成，待提交（截止5/16 23:59） |
+| 状态 | ⬛ 已过期未提交，项目保留为可复用资产 |
 
 ## FSM 状态机
 
 ```
 DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO → SUBMIT → RETROSPECT
-                                        ✓         ✓       ✓      ⬜      ⬜       ⬜
+                                        ✓         ✓       ✓      ✅      ❌       ⬜
 ```
 
-当前: **DEMO** 阶段
+当前: **SUBMIT失败** — 截止5/16 23:59未提交，项目转为可复用资产
+
+> **复盘**: 代码开发完成度100%，但提交物(合约部署/Demo视频/X推文)均为手动操作，未能及时完成。
+> **教训**: 黑客松提交物应提前1天完成，预留手动操作缓冲时间。
+> **资产价值**: VeriVision核心pipeline(VLM幻觉检测+跨模型验证)可直接复用于BEYOND/Sea×OpenAI等竞赛。
 
 ## 阶段执行记录
 
@@ -67,9 +71,11 @@ DISCOVER → REGISTER → SELECT → ARCHITECT → DEVELOP → TEST → DEMO →
   - [x] 知识库同步（KalyceBrain项目页更新）
   - [x] 专业评审报告（基于获奖项目分析）
   - [x] SUBMIT-NOW.md提交操作清单
-- 待手动完成:
-  - [ ] Loom录制3分钟Demo视频
+  - [x] deploy.py改用solcx源码编译（修复硬编码bytecode）
+  - [x] README去AI化打磨
+- 待手动完成（按优先级排序）:
   - [ ] 0G合约部署（MetaMask+deploy.py）
+  - [ ] Loom录制3分钟Demo视频
   - [ ] X推文发布
   - [ ] HackQuest最终提交
 - 依赖: 无（代码已就绪）
