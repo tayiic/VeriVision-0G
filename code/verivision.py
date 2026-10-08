@@ -130,6 +130,9 @@ class VLMHallucinationDetector:
         return self._call_openai(img_b64, prompt)
 
     def _extract_objects(self, description: str) -> List[str]:
+        # NOTE: regex-based extraction is brittle. VLMs format descriptions
+        # inconsistently — a structured output (JSON mode) would be more reliable.
+        # This works for our tested models but expect false negatives on unusual formats.
         import re
         patterns = [
             r'(?:there (?:is|are)|I (?:see|can see)|I notice|visible|present|shown)[\s:]*(.+?)(?:\.|,|$)',

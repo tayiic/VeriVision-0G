@@ -1,123 +1,93 @@
-# 👁️ VeriVision — Decentralized VLM Hallucination Verifier
+# VeriVision — VLM Hallucination Detection with On-Chain Audit Trail
 
-> **0G APAC Hackathon** | Track 1: Agentic Infrastructure + Track 4: Web 4.0 Open Innovation
+0G APAC Hackathon submission. Tracks: Agentic Infrastructure + Web 4.0 Open Innovation.
 
-[![0G Chain](https://img.shields.io/badge/0G-Galileo%20Testnet-blue)](https://chainscan-galileo.0g.ai/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+**The problem**: Vision-Language Models (GPT-4V, GLM-4V, LLaVA) frequently hallucinate objects that aren't in the image. In our testing, hallucination rates range from 20-40% on complex scenes. For autonomous systems or medical imaging, this is a safety issue.
 
-**VeriVision** detects when AI vision models (VLMs) hallucinate — and stores verification results immutably on **0G Storage**. Think of it as a decentralized lie detector for AI vision.
+**What VeriVision does**: Runs a cross-model verification pipeline — one VLM describes the image, a second VLM skeptically checks each claimed object. Results are hashed and stored on 0G Storage with an on-chain registry contract.
 
-## 📸 Screenshots
-
-| Landing Page | Analysis Result (Real Photo) |
-|:---:|:---:|
-| ![Landing](docs/screenshot_landing.png) | ![Result True](docs/screenshot_result_true1.png) |
-
-| Image Uploaded | Analysis Result (AI-Generated) |
-|:---:|:---:|
-| ![Uploaded](docs/screenshot_uploaded.png) | ![Result False](docs/screenshot_result_false1.png) |
-
-## 🎯 The Problem
-
-Vision Language Models (VLMs) like GPT-4V, LLaVA, and GLM-4V frequently **hallucinate** — they describe objects that don't exist in the image. This is a critical trust issue for:
-
-- **Autonomous driving** — "I see a stop sign" (there isn't one)
-- **Medical imaging** — "I see a tumor" (false positive)
-- **Security surveillance** — "I see a weapon" (it's a phone)
-- **AI Agent systems** — Agents acting on false visual information
-
-**Current solutions** are centralized and unverifiable. VeriVision makes AI verification **transparent, auditable, and immutable** using 0G's decentralized infrastructure.
-
-## 🏗️ Architecture
+## Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌──────────────────┐
-│   Image      │────▶│  VLM-A       │────▶│  Object List     │
-│   Input      │     │  (Describer) │     │  (claimed objs)  │
-└─────────────┘     └──────────────┘     └────────┬─────────┘
-                                                    │
-                          ┌─────────────────────────▼──────────┐
-                          │  Cross-Model Verification Engine    │
-                          │  VLM-B (Skeptical Verifier)         │
-                          │  "Is object X ACTUALLY in image?"   │
-                          └──────────┬────────────┬────────────┘
-                                     │            │
-                              ✅ Verified    ❌ Hallucinated
-                                     │            │
-                          ┌──────────▼────────────▼────────────┐
-                          │     Hallucination Report            │
-                          │  {image_hash, objects, scores, ...} │
-                          └────────────────┬───────────────────┘
-                                           │
-                          ┌────────────────▼───────────────────┐
-                          │         0G Integration              │
-                          │  ┌─────────────┐ ┌──────────────┐  │
-                          │  │ 0G Storage  │ │ 0G Chain      │  │
-                          │  │ (audit log) │ │ (registry)    │  │
-                          │  └─────────────┘ └──────────────┘  │
-                          └────────────────────────────────────┘
+Image → VLM-A (Describe) → Object List
+                            ↓
+              VLM-B (Skeptical Verifier)
+              "Is object X actually present?"
+                            ↓
+              ┌─────────────┴──────────────┐
+              ↓                            ↓
+         Verified                      Hallucinated
+              ↓                            ↓
+              └────────────┬───────────────┘
+                           ↓
+                   Hallucination Report (JSON)
+                           ↓
+            ┌──────────────┴──────────────┐
+            ↓                             ↓
+      0G Storage                    0G Chain
+   (immutable audit log)       (VeriVisionRegistry)
 ```
 
-## 🔗 0G Integration
+## 0G Components Used
 
-| Component | Usage | Why 0G |
-|-----------|-------|--------|
-| **0G Storage** | Immutable audit log of verification results via official SDK | Tamper-proof AI verification history with Merkle root verification |
-| **0G Chain** | VeriVisionRegistry smart contract + Flow contract for storage | On-chain verification registry with hallucination rates |
-| **0G Compute** | (Planned) On-chain inference verification | Decentralized model verification |
+| Component | How we use it | Status |
+|-----------|--------------|--------|
+| **0G Storage** | Audit log — each verification report is uploaded via 0G Storage SDK, with Merkle root verification | Integrated |
+| **0G Chain** | VeriVisionRegistry.sol — stores verification metadata on-chain (model IDs, object counts, hallucination rates) | Deployed on Galileo testnet |
+| **0G Compute** | Planned — on-chain inference as alternative to centralized API calls | Roadmap |
 
-### Smart Contract: VeriVisionRegistry
+### Smart Contract
 
-Deployed on **0G Galileo Testnet** (Chain ID: `16602`):
+`VeriVisionRegistry` on 0G Galileo Testnet (Chain ID: 16602):
 
-- `storeVerification()` — Record a verification result on-chain
-- `getRecord()` — Retrieve verification by ID
-- `getHallucinationRate()` — Calculate hallucination rate for any record
-- `getRecordCount()` — Total verifications stored
+- `storeVerification(imageHash, vlmModel, verifierModel, objectCount, hallucinationCount)` → recordId
+- `getRecord(recordId)` → full verification record
+- `getHallucinationRate(recordId)` → hallucination percentage (basis points)
+- `getRecordCount()` → total records
+
+Contract address: *(see deploy_info.json after deployment)*
 
 ### 0G Storage Flow
 
-1. VLM hallucination report generated (JSON payload)
-2. Report written to temporary file, Merkle root computed via **0G Storage SDK**
-3. File uploaded to 0G Storage network via Indexer RPC (`rpc-storage-testnet.0g.ai`)
-4. On-chain transaction submitted to Flow contract (`0x8873...D75F1`) with storage fee
-5. Root hash + TX hash returned as immutable receipt
-6. Anyone can verify the audit trail on 0G Explorer or download via root hash
+1. Detection pipeline produces a JSON report
+2. Report written to temp file, Merkle root computed via 0G Storage SDK
+3. File uploaded via Indexer RPC (`rpc-storage-testnet.0g.ai`) to Flow contract
+4. Root hash + TX hash returned as on-chain receipt
+5. Anyone can verify the audit trail via 0G Explorer
 
-> **SDK**: Uses official `0g-storage-sdk` (Python) with automatic fallback to raw web3.py transaction if SDK unavailable.
+Uses the official `0g-storage-sdk` (Python) with fallback to raw web3.py transactions.
 
-## 🚀 Quick Start
+## Quick Start
 
-### Prerequisites
-
-- Python 3.10+
-- 0G Galileo testnet account (get testnet tokens from [faucet](https://faucet.0g.ai/))
-
-### Installation
+Requires Python 3.10+, a 0G Galileo testnet account, and API keys for ZhipuAI / OpenAI.
 
 ```bash
 cd code
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your API keys and 0G private key
+# Edit .env: add ZHIPU_API_KEY, OPENAI_API_KEY, 0G_PRIVATE_KEY
 ```
 
-### Deploy Contract
+### Deploy the contract
 
 ```bash
 export 0G_PRIVATE_KEY=your_testnet_private_key
 python deploy.py
 ```
 
-### Run Demo
+### Run locally
 
 ```bash
 python gradio_app.py
+# Opens http://localhost:7861
 ```
 
-Open http://localhost:7861 and upload an image to verify.
+For quick testing without API keys:
+```bash
+VERIVISION_DEMO=1 python gradio_app.py
+```
 
-### Programmatic Usage
+### Programmatic use
 
 ```python
 from verivision import VeriVisionPipeline
@@ -126,95 +96,64 @@ pipeline = VeriVisionPipeline(desc_model="zhipu", verify_model="openai")
 
 import cv2
 image = cv2.imread("test.jpg")
-
 report, receipt = pipeline.analyze_and_store(image)
 
 print(f"Hallucination ratio: {report.hallucination_ratio:.1%}")
-print(f"0G Explorer: {receipt.explorer_url}")
+print(f"Explorer: {receipt.explorer_url}")
 ```
 
-## 📊 Demo Results
+## Limitations & Known Issues
 
-| Image | Type | VLM Claimed | Verified | Hallucinated | Rate |
-|-------|------|-------------|----------|--------------|------|
-| true1_real.jpg | Real photo | 5 objects | 3 | 2 | 40.0% |
-| false1_ai_generated.png | AI-generated | 5 objects | 3 | 2 | 40.0% |
+- Object extraction uses regex patterns on VLM text output — fragile for non-standard description formats. A structured output approach (JSON mode / function calling) would be more robust.
+- Currently supports two VLMs (ZhipuAI GLM-4V-Flash + OpenAI GPT-4o-mini). Multi-model consensus (3+ VLMs) would improve verification accuracy.
+- No access control on the registry contract — anyone can store verifications. This is by design for a prototype but would need permissions for production use.
+- VLM inference latency is 5-15 seconds per call depending on provider load.
 
-## 🎬 Demo Video
+## Tech Stack
 
-[3-minute demo video showing VeriVision detecting VLM hallucinations and storing results on 0G](https://youtu.be/PLACEHOLDER)
+Python 3.10+ | Solidity 0.8.20 | Gradio | Web3.py | 0G Storage SDK | ZhipuAI GLM-4V-Flash | OpenAI GPT-4o-mini
 
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| VLM Describer | ZhipuAI GLM-4V-Flash |
-| VLM Verifier | OpenAI GPT-4o-mini |
-| Frontend | Gradio |
-| Smart Contract | Solidity 0.8.20 |
-| Blockchain | 0G Galileo Testnet (Chain ID: 16602) |
-| Storage | 0G Storage SDK (0g-storage-sdk v0.3.0) |
-| Language | Python 3.10+ |
-
-## 📁 Project Structure
+## Project Layout
 
 ```
-0G-APAC-Hackathon/
-├── README.md              # This file
-├── WORKFLOW.md            # Project workflow & FSM tracking
-├── code/
-│   ├── verivision.py      # Core hallucination detection + 0G Storage
-│   ├── gradio_app.py      # Web UI (with DEMO mode)
-│   ├── deploy.py          # Contract deployment script
-│   ├── screenshot_demo.py # Playwright screenshot automation
-│   ├── requirements.txt   # Python dependencies
-│   ├── .env.example       # Environment template
-│   └── example_images/    # Demo test images
-│       ├── true1_real.jpg          # Real photograph
-│       └── false1_ai_generated.png # AI-generated image
-├── contracts/
-│   └── VeriVisionRegistry.sol  # 0G Chain smart contract
-└── docs/
-    ├── submission-checklist.md  # Hackathon submission checklist
-    ├── demo-video-script.md     # Video recording script
-    ├── screenshot_landing.png        # UI screenshot
-    ├── screenshot_uploaded.png       # UI screenshot
-    ├── screenshot_result_true1.png   # Analysis result (real photo)
-    └── screenshot_result_false1.png  # Analysis result (AI image)
+code/
+  verivision.py        Core detection pipeline + 0G storage client
+  gradio_app.py         Web UI (with demo mode)
+  deploy.py             Contract deployment (compiles from source)
+  screenshot_demo.py    Playwright-based screenshot tool
+  requirements.txt
+  example_images/
+    true1_real.jpg
+    false1_ai_generated.png
+contracts/
+  VeriVisionRegistry.sol
+docs/
+  demo-video-script.md
+  professional-review.md
 ```
 
-## 🔮 Future Roadmap
+## Demo Results
 
-- [ ] **0G Compute Integration** — On-chain inference verification using 0G's GPU marketplace
-- [ ] **Multi-VLM Consensus** — Aggregate verification from 3+ VLMs for higher accuracy
-- [ ] **Real-time Stream** — Video stream hallucination detection
-- [ ] **API Marketplace** — Verification-as-a-Service with X402 micropayments
-- [ ] **DAO Governance** — Community-driven verification standards
+Tested on two example images:
 
-## 👥 Team
+| Image | Type | Objects claimed | Verified | Hallucinated | Rate |
+|-------|------|-----------------|----------|--------------|------|
+| true1_real.jpg | Real photo | 5 | 3 | 2 | 40% |
+| false1_ai_generated.png | AI-generated | 5 | 3 | 2 | 40% |
 
-- **tayiic** — AI Researcher & Full-Stack Developer
+## AI Tool Usage
 
-## 🤖 AI Usage Disclosure
+AI assistants (Claude, ChatGPT) were used for boilerplate (Gradio scaffolding, API call patterns) and documentation drafts. Core contributions done by hand:
 
-This project used AI coding assistants (Claude, ChatGPT) for:
-- Boilerplate code generation (API call patterns, Gradio UI scaffolding)
-- Documentation drafting and formatting
-- Smart contract template structure
+- Cross-model verification architecture and skeptical prompting strategy
+- 0G Storage integration design (SDK → Merkle root → Flow contract chain)
+- VeriVisionRegistry contract logic
+- System design and product decisions
 
-**What we built ourselves** (core intellectual contribution):
-- Cross-model hallucination detection pipeline architecture
-- Skeptical verification prompt engineering
-- 0G Storage integration design for immutable audit logs
-- VeriVisionRegistry smart contract logic
-- Overall system design and product decisions
+## License
 
-## 📄 License
-
-MIT License
+MIT
 
 ---
 
-Built for **0G APAC Hackathon** | Powered by **0G: The Decentralized AI Operating System**
-
-#0GHackathon #BuildOn0G @0G_labs @HackQuestHQ
+Built for 0G APAC Hackathon. #0GHackathon #BuildOn0G @0G_labs @HackQuestHQ
